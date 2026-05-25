@@ -42,9 +42,9 @@ services:
         value: production
       - key: AUTH_DISABLED
         value: "false"
-      # Public Render URL for the web service (must match tracker-web name below).
+      # Exact frontend origin(s), comma-separated. Must match Render → web service URL.
       - key: CORS_ORIGINS
-        value: https://tracker-web.onrender.com
+        value: https://tracker-web-7awf.onrender.com
 
   - type: web
     name: tracker-web

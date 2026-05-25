@@ -40,8 +40,8 @@ Use your default branch name in `render.yaml` (`branch: main`) or change it to `
 
 In Supabase → **Authentication → URL configuration**, add:
 
-- **Site URL:** `https://tracker-web.onrender.com`
-- **Redirect URLs:** `https://tracker-web.onrender.com/auth/callback`
+- **Site URL:** `https://tracker-web-7awf.onrender.com` (your Render web URL)
+- **Redirect URLs:** `https://tracker-web-7awf.onrender.com/auth/callback`
 
 (If you renamed services in `render.yaml`, use `https://YOUR-WEB-SERVICE-NAME.onrender.com` instead.)
 
@@ -50,7 +50,7 @@ In Supabase → **Authentication → URL configuration**, add:
 | URL | Expected |
 |-----|----------|
 | `https://tracker-api-mb13.onrender.com/health` | `{"ok":true,...}` |
-| `https://tracker-web.onrender.com` | Login page → sign in → app |
+| `https://tracker-web-7awf.onrender.com` | Login page → sign in → app |
 
 ---
 
@@ -70,7 +70,7 @@ After the Blueprint exists, every push to **`main`** (or your configured branch)
 | Service | URL |
 |---------|-----|
 | API | `https://tracker-api-mb13.onrender.com` (your hostname may differ) |
-| Web | `https://tracker-web.onrender.com` |
+| Web | `https://tracker-web-7awf.onrender.com` |
 
 These are wired in `render.yaml` for `CORS_ORIGINS` and `NEXT_PUBLIC_TRACKER_API_URL`. If you **rename** services on Render, update those two values in `render.yaml` **and** in the Render Dashboard, then **redeploy tracker-web** (Next.js bakes `NEXT_PUBLIC_*` at build time).
 
@@ -81,7 +81,7 @@ Usually the web app was built with the wrong API hostname. Check:
 1. Open `https://YOUR-API.onrender.com/health` — must return `{"ok":true,...}` (not 404).
 2. Render → **tracker-web** → **Environment** → `NEXT_PUBLIC_TRACKER_API_URL` = exact API URL (e.g. `https://tracker-api-mb13.onrender.com`).
 3. **Manual Deploy** on tracker-web with **Clear build cache** (required after changing `NEXT_PUBLIC_*`).
-4. Render → **tracker-api** → `CORS_ORIGINS` must include your web URL exactly (e.g. `https://tracker-web.onrender.com`).
+4. Render → **tracker-api** → `CORS_ORIGINS` must include your web URL **exactly** (e.g. `https://tracker-web-7awf.onrender.com`, not `tracker-web.onrender.com`).
 
 ---
 
@@ -110,7 +110,7 @@ Usually the web app was built with the wrong API hostname. Check:
 | API build fails on Prisma | Check `DATABASE_URL` / `DIRECT_URL`; use pooler hosts from Supabase |
 | Web build missing env | Set all `NEXT_PUBLIC_*` vars before deploy; redeploy after changes |
 | Login works locally, not on Render | Add production redirect URL in Supabase |
-| CORS errors | `CORS_ORIGINS` must exactly match `https://tracker-web.onrender.com` |
+| CORS errors (Network tab) | `CORS_ORIGINS` on **tracker-api** must exactly match your web URL, e.g. `https://tracker-web-7awf.onrender.com` |
 | Free tier sleeps | First request after idle may be slow (~30s) |
 
 ---
