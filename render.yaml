@@ -67,5 +67,6 @@ services:
         value: 22.14.0
       - key: NODE_ENV
         value: production
+      # Must match your API service hostname (Render → service → URL).
       - key: NEXT_PUBLIC_TRACKER_API_URL
-        value: https://tracker-api.onrender.com
+        value: https://tracker-api-mb13.onrender.com

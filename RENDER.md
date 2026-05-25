@@ -49,7 +49,7 @@ In Supabase → **Authentication → URL configuration**, add:
 
 | URL | Expected |
 |-----|----------|
-| `https://tracker-api.onrender.com/health` | `{"ok":true,...}` |
+| `https://tracker-api-mb13.onrender.com/health` | `{"ok":true,...}` |
 | `https://tracker-web.onrender.com` | Login page → sign in → app |
 
 ---
@@ -69,10 +69,19 @@ After the Blueprint exists, every push to **`main`** (or your configured branch)
 
 | Service | URL |
 |---------|-----|
-| API | `https://tracker-api.onrender.com` |
+| API | `https://tracker-api-mb13.onrender.com` (your hostname may differ) |
 | Web | `https://tracker-web.onrender.com` |
 
-These are wired in `render.yaml` for `CORS_ORIGINS` and `NEXT_PUBLIC_TRACKER_API_URL`. If you **rename** services, update those two values in `render.yaml` and redeploy.
+These are wired in `render.yaml` for `CORS_ORIGINS` and `NEXT_PUBLIC_TRACKER_API_URL`. If you **rename** services on Render, update those two values in `render.yaml` **and** in the Render Dashboard, then **redeploy tracker-web** (Next.js bakes `NEXT_PUBLIC_*` at build time).
+
+### "Signed in, but API sync failed" / Failed to fetch
+
+Usually the web app was built with the wrong API hostname. Check:
+
+1. Open `https://YOUR-API.onrender.com/health` — must return `{"ok":true,...}` (not 404).
+2. Render → **tracker-web** → **Environment** → `NEXT_PUBLIC_TRACKER_API_URL` = exact API URL (e.g. `https://tracker-api-mb13.onrender.com`).
+3. **Manual Deploy** on tracker-web with **Clear build cache** (required after changing `NEXT_PUBLIC_*`).
+4. Render → **tracker-api** → `CORS_ORIGINS` must include your web URL exactly (e.g. `https://tracker-web.onrender.com`).
 
 ---
 

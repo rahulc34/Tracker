@@ -30,18 +30,28 @@ async function syncTrackerUser(
   accessToken: string,
   profile: { email?: string | null; name?: string },
 ): Promise<TrackerUser> {
-  const res = await fetch(`${getApiBase()}/api/auth/session`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(profile),
-  });
+  const apiBase = getApiBase();
+  const sessionUrl = `${apiBase}/api/auth/session`;
+  let res: Response;
+  try {
+    res = await fetch(sessionUrl, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(profile),
+    });
+  } catch {
+    throw new Error(
+      `Failed to reach ${sessionUrl}. On Render, set NEXT_PUBLIC_TRACKER_API_URL to your API URL (e.g. https://tracker-api-mb13.onrender.com) on tracker-web, then redeploy.`,
+    );
+  }
   if (!res.ok) {
     const detail = await res.text();
     throw new Error(
-      detail || `Tracker API error (${res.status}). Is the backend running on port 4001?`,
+      detail ||
+        `Tracker API error (${res.status}) at ${sessionUrl}. Is the backend running?`,
     );
   }
   return res.json() as Promise<TrackerUser>;

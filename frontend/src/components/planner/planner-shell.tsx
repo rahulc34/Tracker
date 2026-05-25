@@ -7,6 +7,7 @@ import { ExplorerSidebar } from "@/components/planner/explorer-sidebar";
 import { TopBar } from "@/components/planner/top-bar";
 import { AddYearProvider, useOpenAddYear } from "@/lib/add-year-context";
 import { useAuth } from "@/contexts/auth-context";
+import { getApiBase } from "@/lib/constants";
 import { isSupabaseConfigured } from "@/lib/supabase/client";
 import Link from "next/link";
 import { cn } from "@/lib/cn";
@@ -126,15 +127,32 @@ export function PlannerShell({
     }
 
     if (session && syncError) {
+      const apiBase = getApiBase();
+      const isLocalDev =
+        typeof window !== "undefined" &&
+        (window.location.hostname === "localhost" ||
+          window.location.hostname === "127.0.0.1");
       return (
         <div className="flex h-[100dvh] flex-col items-center justify-center gap-3 bg-[var(--color-bg)] p-6 text-center">
           <p className="text-[var(--color-text-strong)]">Signed in, but API sync failed</p>
           <p className="max-w-md text-sm text-[var(--color-danger)]">{syncError}</p>
           <p className="max-w-md text-xs text-[var(--color-muted)]">
-            Start the backend: <code className="text-xs">npm run dev:backend</code>
-            . Run migrations:{" "}
-            <code className="text-xs">npm run prisma:migrate</code>.
+            API URL in this build: <code className="text-xs">{apiBase}</code>
           </p>
+          {isLocalDev ? (
+            <p className="max-w-md text-xs text-[var(--color-muted)]">
+              Start the backend: <code className="text-xs">npm run dev:backend</code>
+              . Run migrations:{" "}
+              <code className="text-xs">npm run prisma:migrate</code>.
+            </p>
+          ) : (
+            <p className="max-w-md text-xs text-[var(--color-muted)]">
+              On Render → <strong>tracker-web</strong> → Environment, set{" "}
+              <code className="text-xs">NEXT_PUBLIC_TRACKER_API_URL</code> to your live API
+              (e.g. <code className="text-xs">https://tracker-api-mb13.onrender.com</code>
+              ), then <strong>Manual Deploy → Clear build cache & deploy</strong>.
+            </p>
+          )}
         </div>
       );
     }
