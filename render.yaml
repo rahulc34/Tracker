@@ -25,7 +25,7 @@ services:
     runtime: node
     plan: free
     branch: main
-    buildCommand: npm ci && npm run prisma:generate && npm run build:backend
+    buildCommand: npm ci --include=dev && npm run prisma:generate && npm run build:backend
     startCommand: cd backend && npx prisma migrate deploy && node dist/index.js
     healthCheckPath: /health
     buildFilter:
@@ -51,7 +51,8 @@ services:
     runtime: node
     plan: free
     branch: main
-    buildCommand: npm ci && npm run build:frontend
+    # Install devDependencies too (types/eslint); NODE_ENV=production skips them otherwise.
+    buildCommand: npm ci --include=dev && npm run build:frontend
     startCommand: cd frontend && npm run start
     healthCheckPath: /
     buildFilter:
