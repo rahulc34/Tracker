@@ -97,6 +97,7 @@ These are wired in `render.yaml` for `CORS_ORIGINS` and `NEXT_PUBLIC_TRACKER_API
 
 | Issue | Fix |
 |-------|-----|
+| API crashes: `Cannot find module .../dist/generated/prisma/client.js` | Ensure latest `backend/package.json` build copies Prisma to `dist/`; redeploy |
 | API build fails on Prisma | Check `DATABASE_URL` / `DIRECT_URL`; use pooler hosts from Supabase |
 | Web build missing env | Set all `NEXT_PUBLIC_*` vars before deploy; redeploy after changes |
 | Login works locally, not on Render | Add production redirect URL in Supabase |

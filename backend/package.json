@@ -11,7 +11,8 @@
   "main": "dist/index.js",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.json && npm run build:copy-prisma",
+    "build:copy-prisma": "cp -R src/generated dist/generated",
     "start": "node dist/index.js",
     "start:prod": "prisma migrate deploy && node dist/index.js",
     "prisma:generate": "prisma generate",
