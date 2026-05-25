@@ -5,15 +5,17 @@ Personal learning tracker API — years, skills, months, assignments, and progre
 ## Stack
 
 - Express 5 + TypeScript
-- Prisma + PostgreSQL
+- Prisma + **Supabase PostgreSQL** (or local Postgres)
 - Zod validation
 
 ## Setup
 
+See **[SUPABASE.md](../SUPABASE.md)** for connection strings from the Supabase dashboard.
+
 ```bash
 # From Tracker root
 cp backend/.env.example backend/.env
-# Edit DATABASE_URL
+# Set DATABASE_URL (pooler :6543) and DIRECT_URL (:5432) from Supabase
 
 npm install
 npm run prisma:generate
@@ -26,11 +28,15 @@ Default port: **4001**
 
 ## API Endpoints
 
+### Auth
+| Method | Path | Description |
+|--------|------|-------------|
+| POST | `/api/auth/session` | Sync Supabase user → `tracker_users` (Bearer token required) |
+
 ### Users
 | Method | Path | Description |
 |--------|------|-------------|
-| POST | `/api/users` | Create user |
-| GET | `/api/users/:userId` | Get user |
+| GET | `/api/users/:userId` | Get user (own profile only) |
 | GET | `/api/users/:userId/root-overview` | Root dashboard analytics |
 
 ### Years

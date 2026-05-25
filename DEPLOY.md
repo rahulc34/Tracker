@@ -2,13 +2,15 @@
 
 Pulse is a **Next.js frontend** + **Express/Prisma API** + **PostgreSQL** app.
 
+**Database:** [Supabase](https://supabase.com) is the recommended host. See **[SUPABASE.md](./SUPABASE.md)** for connection strings and migrations.
+
 ---
 
 ## Prerequisites
 
 - **Node.js 20+** and **npm 10+** (manual deploy)
-- **Docker** + **Docker Compose** (recommended)
-- A **PostgreSQL 16** database (included in Docker Compose)
+- **Docker** + **Docker Compose** (optional, for self-hosting API + web)
+- A **PostgreSQL** database — **Supabase** (recommended) or local/Docker Postgres
 
 ---
 
@@ -22,11 +24,12 @@ Best for a VPS, home server, or any machine with Docker.
 cp .env.production.example .env
 ```
 
-Edit `.env` — replace placeholders with your **public** URLs (what the browser uses):
+Edit `.env`:
+
+1. **Supabase** — set `DATABASE_URL` (transaction pooler, port `6543`) and `DIRECT_URL` (session/direct, port `5432`). See [SUPABASE.md](./SUPABASE.md).
+2. **Public URLs** — what the browser uses:
 
 ```env
-POSTGRES_PASSWORD=your-strong-password
-
 # Example: VPS at 203.0.113.10
 NEXT_PUBLIC_TRACKER_API_URL=http://203.0.113.10:4001
 CORS_ORIGINS=http://203.0.113.10:3001
@@ -40,16 +43,16 @@ CORS_ORIGINS=http://203.0.113.10:3001
 
 ### 2. Build and start
 
-From the **Tracker** directory:
+From the **Tracker** directory (Supabase — no local Postgres container):
 
 ```bash
-npm run docker:up
+docker compose --env-file .env up -d --build api web
 ```
 
-Or directly:
+With **local** Postgres instead:
 
 ```bash
-docker compose --env-file .env up -d --build
+docker compose --env-file .env --profile local-db up -d --build
 ```
 
 ### 3. Open the app
@@ -77,16 +80,17 @@ docker compose --env-file .env exec api npx prisma migrate deploy
 
 ## Option B — Manual deploy (VPS without Docker)
 
-### 1. Database
+### 1. Database (Supabase)
 
-Create a PostgreSQL database named `tracker` and note the connection string.
+1. Create a project at [supabase.com](https://supabase.com).
+2. Copy **transaction** and **session/direct** connection strings into `backend/.env` as `DATABASE_URL` and `DIRECT_URL` ([SUPABASE.md](./SUPABASE.md)).
 
 ### 2. Backend
 
 ```bash
 cd backend
 cp .env.example .env
-# Set DATABASE_URL, PORT=4001, CORS_ORIGINS=https://your-frontend-domain
+# Set DATABASE_URL, DIRECT_URL, PORT=4001, CORS_ORIGINS=https://your-frontend-domain
 npm ci
 npx prisma migrate deploy
 npm run build
@@ -118,38 +122,37 @@ pm2 start npm --name pulse-web -- start
 
 ---
 
-## Option C — Split cloud deploy
+## Option C — Render (recommended for GitHub auto-deploy)
+
+**Full guide:** **[RENDER.md](./RENDER.md)**
+
+1. Push repo to GitHub (`main` branch).
+2. Render Dashboard → **New** → **Blueprint** → connect repo.
+3. Set secret env vars when prompted (Supabase URLs + keys).
+4. Every push to `main` redeploys **tracker-api** and **tracker-web**.
+
+Default URLs:
+
+- API: `https://tracker-api.onrender.com`
+- Web: `https://tracker-web.onrender.com`
+
+Configured in [`render.yaml`](./render.yaml) (Node 22, monorepo workspaces).
+
+---
+
+## Option D — Other split cloud deploy
 
 | Service | Suggested host | Notes |
 |---------|----------------|-------|
-| Frontend | **Vercel**, Netlify, Railway | Set `NEXT_PUBLIC_TRACKER_API_URL` in project env |
-| API | **Railway**, Render, Fly.io | Set `DATABASE_URL`, `CORS_ORIGINS`, `NODE_ENV=production` |
-| Database | **Neon**, Supabase, Railway Postgres | Use connection string in API |
-
-### Vercel (frontend)
-
-1. Import repo; set **Root Directory** to `frontend`
-2. Environment variables:
-   - `NEXT_PUBLIC_TRACKER_API_URL` = `https://your-api.example.com`
-   - `NEXT_PUBLIC_DEFAULT_USER_ID` = your user UUID
-3. Deploy
-
-### Railway / Render (API)
-
-1. Root / working directory: `backend`
-2. Build: `npm ci && npx prisma generate && npm run build`
-3. Start: `npx prisma migrate deploy && node dist/index.js`
-4. Environment:
-   - `DATABASE_URL`
-   - `CORS_ORIGINS` = your Vercel URL (e.g. `https://pulse.vercel.app`)
-   - `NODE_ENV` = `production`
-   - `PORT` = provided by platform
+| Frontend | **Vercel**, Netlify | Set `NEXT_PUBLIC_*` + Supabase keys |
+| API | **Railway**, Fly.io | `DATABASE_URL`, `DIRECT_URL`, `SUPABASE_*`, `CORS_ORIGINS` |
+| Database | **Supabase** | Pooler URLs on API |
 
 ---
 
 ## Production checklist
 
-- [ ] Set a strong `POSTGRES_PASSWORD` (Docker) or use managed Postgres
+- [ ] Configure Supabase `DATABASE_URL` + `DIRECT_URL` (or strong `POSTGRES_PASSWORD` for local Docker)
 - [ ] Set `CORS_ORIGINS` to your **exact** frontend URL(s), comma-separated
 - [ ] Set `NEXT_PUBLIC_TRACKER_API_URL` to your **public** API URL
 - [ ] Use **HTTPS** in production (Caddy, Nginx, or Cloudflare in front)
@@ -183,7 +186,7 @@ Rebuild/redeploy the frontend after changing `NEXT_PUBLIC_*` variables.
 |---------|-----|
 | “Could not load data” on phone/LAN | `CORS_ORIGINS` must include the exact frontend origin; API must be reachable on the public URL |
 | Frontend loads but API fails | Check `NEXT_PUBLIC_TRACKER_API_URL` matches where the browser can reach the API |
-| DB connection errors | Verify `DATABASE_URL`; for Docker, wait for `db` healthcheck |
+| DB connection errors | Verify Supabase `DATABASE_URL` / `DIRECT_URL`; URL-encode password; check Supabase network allowlist |
 | Migrations failed | Run `npx prisma migrate deploy` manually inside the API container |
 
 ---
@@ -194,5 +197,5 @@ Rebuild/redeploy the frontend after changing `NEXT_PUBLIC_*` variables.
 Browser  →  :3001  Next.js (frontend)
          →  :4001  Express API (backend)
                     ↓
-                 PostgreSQL
+              Supabase PostgreSQL
 ```

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { Search } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { api } from "@/lib/api";
+import { useApi } from "@/contexts/auth-context";
 import { cn } from "@/lib/cn";
 
 export function PlannerSearch({
@@ -14,13 +14,14 @@ export function PlannerSearch({
   className?: string;
   onResultClick?: () => void;
 }) {
+  const api = useApi();
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
 
   const indexQuery = useQuery({
-    queryKey: ["plan-search-index"],
-    queryFn: api.getPlanSearchIndex,
+    queryKey: ["plan-search-index", api.userId],
+    queryFn: () => api.getPlanSearchIndex(),
     staleTime: 60_000,
   });
 

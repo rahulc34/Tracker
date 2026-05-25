@@ -2,10 +2,10 @@
   "name": "pulse-tracker",
   "version": "0.1.0",
   "private": true,
-  "description": "Pulse Tracker — Next.js frontend + Express API + PostgreSQL.",
+  "description": "Pulse Tracker — Next.js frontend + Express API + Supabase PostgreSQL.",
   "license": "UNLICENSED",
   "engines": {
-    "node": ">=20.13.1",
+    "node": ">=22.0.0 <23.0.0",
     "npm": ">=10"
   },
   "workspaces": [

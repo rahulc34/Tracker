@@ -4,7 +4,8 @@ import { useQuery } from "@tanstack/react-query";
 import { use } from "react";
 import { SkillView } from "@/components/planner/skill-view";
 import { PlannerShell } from "@/components/planner/planner-shell";
-import { api } from "@/lib/api";
+import { useApi } from "@/contexts/auth-context";
+import { AuthGate } from "@/components/auth/auth-gate";
 
 export default function SkillPage({
   params,
@@ -12,9 +13,10 @@ export default function SkillPage({
   params: Promise<{ skillId: string }>;
 }) {
   const { skillId } = use(params);
+  const api = useApi();
 
   const skill = useQuery({
-    queryKey: ["skill", skillId],
+    queryKey: ["skill", skillId, api.userId],
     queryFn: () => api.getSkill(skillId),
   });
 
@@ -58,7 +60,9 @@ export default function SkillPage({
         { label: s.title },
       ]}
     >
-      <SkillView skill={s} />
+      <AuthGate>
+        <SkillView skill={s} />
+      </AuthGate>
     </PlannerShell>
   );
 }

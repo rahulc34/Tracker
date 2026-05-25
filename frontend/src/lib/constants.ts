@@ -18,10 +18,6 @@ export function getApiBase(): string {
 /** @deprecated Prefer getApiBase() — static value is wrong on LAN clients. */
 export const API_BASE = getApiBase();
 
-export const DEFAULT_USER_ID =
-  process.env.NEXT_PUBLIC_DEFAULT_USER_ID ??
-  "00000000-0000-4000-8000-000000000001";
-
 export const MONTH_NAMES = [
   "January",
   "February",

@@ -5,8 +5,11 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  // Pooled URL (Supabase transaction pooler, port 6543) for the running API.
+  url       = env("DATABASE_URL")
+  // Direct URL (Supabase session mode, port 5432) for migrations and Prisma Studio.
+  directUrl = env("DIRECT_URL")
 }
 
 enum SkillScope {
@@ -57,9 +60,11 @@ enum VaultItemKind {
 }
 
 model TrackerUser {
-  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name      String
-  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  id             String   @id @db.Uuid
+  supabaseAuthId String?  @unique @map("supabase_auth_id") @db.Uuid
+  email          String?
+  name           String
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz
 
   years     Year[]
   bookmarks UserBookmark[]

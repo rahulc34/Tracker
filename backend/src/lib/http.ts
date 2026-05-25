@@ -16,6 +16,14 @@ export function notFound(res: Response, message = "Not found") {
   res.status(404).json({ error: { code: "NOT_FOUND", message } });
 }
 
+export function unauthorized(res: Response, message = "Unauthorized") {
+  res.status(401).json({ error: { code: "UNAUTHORIZED", message } });
+}
+
+export function forbidden(res: Response, message = "Forbidden") {
+  res.status(403).json({ error: { code: "FORBIDDEN", message } });
+}
+
 export function serverError(res: Response, err: unknown) {
   console.error(err);
   res.status(500).json({ error: { code: "INTERNAL", message: "Internal server error" } });

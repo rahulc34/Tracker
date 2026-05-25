@@ -29,7 +29,7 @@ import {
   formatShortDate,
   isCurrentMonth,
 } from "@/lib/calendar";
-import { api } from "@/lib/api";
+import { useApi } from "@/contexts/auth-context";
 import type { MonthAssignment, MonthOverview, SkillSummary } from "@/lib/types";
 import { cn } from "@/lib/cn";
 
@@ -84,6 +84,7 @@ export function MonthView({
   monthId: string;
   data: MonthOverview;
 }) {
+  const api = useApi();
   const queryClient = useQueryClient();
   const monthName = MONTH_NAMES[data.monthIndex - 1];
 

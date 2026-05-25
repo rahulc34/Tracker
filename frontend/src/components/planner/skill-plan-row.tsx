@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/cn";
-import { api } from "@/lib/api";
+import { useApi } from "@/contexts/auth-context";
 import type { SkillResource, SkillSummary } from "@/lib/types";
 import { ProgressBar } from "@/components/ui/progress";
 
@@ -46,6 +46,7 @@ export function SkillPlanRow({
   tone?: "yearly" | "monthly";
   defaultOpen?: boolean;
 }) {
+  const api = useApi();
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(defaultOpen);
   const [completed, setCompleted] = useState(skill.isCompleted);

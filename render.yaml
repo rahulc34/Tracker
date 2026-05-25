@@ -1,0 +1,70 @@
+# Render Blueprint — push to GitHub → auto-deploy both services.
+# Docs: https://render.com/docs/blueprint-spec
+#
+# First deploy: Dashboard → New → Blueprint → connect repo → set secret env vars when prompted.
+
+envVarGroups:
+  - name: tracker-secrets
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: DIRECT_URL
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: NEXT_PUBLIC_SUPABASE_URL
+        sync: false
+      - key: NEXT_PUBLIC_SUPABASE_ANON_KEY
+        sync: false
+
+services:
+  - type: web
+    name: tracker-api
+    runtime: node
+    plan: free
+    branch: main
+    buildCommand: npm ci && npm run prisma:generate && npm run build:backend
+    startCommand: cd backend && npx prisma migrate deploy && node dist/index.js
+    healthCheckPath: /health
+    buildFilter:
+      paths:
+        - backend/**
+        - package.json
+        - package-lock.json
+        - .node-version
+    envVars:
+      - fromGroup: tracker-secrets
+      - key: NODE_VERSION
+        value: 22.14.0
+      - key: NODE_ENV
+        value: production
+      - key: AUTH_DISABLED
+        value: "false"
+      # Public Render URL for the web service (must match tracker-web name below).
+      - key: CORS_ORIGINS
+        value: https://tracker-web.onrender.com
+
+  - type: web
+    name: tracker-web
+    runtime: node
+    plan: free
+    branch: main
+    buildCommand: npm ci && npm run build:frontend
+    startCommand: cd frontend && npm run start
+    healthCheckPath: /
+    buildFilter:
+      paths:
+        - frontend/**
+        - package.json
+        - package-lock.json
+        - .node-version
+    envVars:
+      - fromGroup: tracker-secrets
+      - key: NODE_VERSION
+        value: 22.14.0
+      - key: NODE_ENV
+        value: production
+      - key: NEXT_PUBLIC_TRACKER_API_URL
+        value: https://tracker-api.onrender.com

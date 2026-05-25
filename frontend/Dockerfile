@@ -1,5 +1,5 @@
 # Build from Tracker root: docker build -f frontend/Dockerfile .
-FROM node:20-alpine AS deps
+FROM node:22-alpine AS deps
 WORKDIR /app
 COPY package.json package-lock.json ./
 COPY frontend/package.json frontend/package.json
@@ -10,14 +10,16 @@ FROM deps AS builder
 COPY frontend frontend
 
 ARG NEXT_PUBLIC_TRACKER_API_URL
-ARG NEXT_PUBLIC_DEFAULT_USER_ID=00000000-0000-4000-8000-000000000001
+ARG NEXT_PUBLIC_SUPABASE_URL
+ARG NEXT_PUBLIC_SUPABASE_ANON_KEY
 ENV NEXT_PUBLIC_TRACKER_API_URL=$NEXT_PUBLIC_TRACKER_API_URL
-ENV NEXT_PUBLIC_DEFAULT_USER_ID=$NEXT_PUBLIC_DEFAULT_USER_ID
+ENV NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL
+ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=$NEXT_PUBLIC_SUPABASE_ANON_KEY
 ENV NODE_ENV=production
 
 RUN npm run build --workspace @tracker/frontend
 
-FROM node:20-alpine AS runner
+FROM node:22-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=3001

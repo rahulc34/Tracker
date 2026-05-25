@@ -5,14 +5,16 @@ import { Suspense } from "react";
 import { RootView } from "@/components/planner/root-view";
 import { PlannerShell } from "@/components/planner/planner-shell";
 import { useOpenAddYear } from "@/lib/add-year-context";
-import { api } from "@/lib/api";
+import { useApi } from "@/contexts/auth-context";
+import { AuthGate } from "@/components/auth/auth-gate";
 
 function RootPageContent() {
+  const api = useApi();
   const openAddYear = useOpenAddYear();
 
   const overview = useQuery({
-    queryKey: ["root-overview"],
-    queryFn: api.getRootOverview,
+    queryKey: ["root-overview", api.userId],
+    queryFn: () => api.getRootOverview(),
   });
 
   if (overview.isLoading) {
@@ -43,7 +45,9 @@ function RootPageContent() {
 function HomeContent() {
   return (
     <PlannerShell crumbs={[{ label: "Root" }]}>
-      <RootPageContent />
+      <AuthGate>
+        <RootPageContent />
+      </AuthGate>
     </PlannerShell>
   );
 }

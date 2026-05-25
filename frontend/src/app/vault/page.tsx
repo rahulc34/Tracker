@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense } from "react";
+import { AuthGate } from "@/components/auth/auth-gate";
 import { VaultView } from "@/components/planner/vault-view";
 import { PlannerShell } from "@/components/planner/planner-shell";
 
@@ -16,7 +17,9 @@ export default function VaultPage() {
       }
     >
       <PlannerShell crumbs={[{ label: "File Vault" }]}>
-        <VaultView />
+        <AuthGate>
+          <VaultView />
+        </AuthGate>
       </PlannerShell>
     </Suspense>
   );

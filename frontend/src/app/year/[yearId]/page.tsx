@@ -4,7 +4,8 @@ import { useQuery } from "@tanstack/react-query";
 import { use } from "react";
 import { YearView } from "@/components/planner/year-view";
 import { PlannerShell } from "@/components/planner/planner-shell";
-import { api } from "@/lib/api";
+import { useApi } from "@/contexts/auth-context";
+import { AuthGate } from "@/components/auth/auth-gate";
 
 export default function YearPage({
   params,
@@ -12,9 +13,10 @@ export default function YearPage({
   params: Promise<{ yearId: string }>;
 }) {
   const { yearId } = use(params);
+  const api = useApi();
 
   const overview = useQuery({
-    queryKey: ["year-overview", yearId],
+    queryKey: ["year-overview", yearId, api.userId],
     queryFn: () => api.getYearOverview(yearId),
   });
 
@@ -48,7 +50,9 @@ export default function YearPage({
         { label: String(overview.data.yearNumber) },
       ]}
     >
-      <YearView yearId={yearId} data={overview.data} />
+      <AuthGate>
+        <YearView yearId={yearId} data={overview.data} />
+      </AuthGate>
     </PlannerShell>
   );
 }

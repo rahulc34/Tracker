@@ -10,7 +10,7 @@ import {
   profilePlatformColor,
 } from "@/components/ui/platform-icons";
 import { Card } from "@/components/ui/card";
-import { api } from "@/lib/api";
+import { useApi } from "@/contexts/auth-context";
 import { PROFILE_PLATFORMS, type ProfilePlatformKey } from "@/lib/bookmarks";
 import { cn } from "@/lib/cn";
 import type { UserBookmark } from "@/lib/types";
@@ -19,6 +19,7 @@ const inputClass =
   "w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] px-3 py-2 text-sm text-[var(--color-text)] outline-none focus:border-[var(--color-accent)]";
 
 export function ProfilesView() {
+  const api = useApi();
   const qc = useQueryClient();
   const [editing, setEditing] = useState<ProfilePlatformKey | null>(null);
   const [search, setSearch] = useState("");
@@ -264,6 +265,7 @@ function EditProfileModal({
   onClose: () => void;
   onSaved: () => void;
 }) {
+  const api = useApi();
   const [title, setTitle] = useState(saved?.title ?? "");
   const [url, setUrl] = useState(saved?.url ?? "");
   const color = profilePlatformColor(platformKey);

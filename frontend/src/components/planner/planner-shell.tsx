@@ -6,14 +6,18 @@ import { useQuery } from "@tanstack/react-query";
 import { ExplorerSidebar } from "@/components/planner/explorer-sidebar";
 import { TopBar } from "@/components/planner/top-bar";
 import { AddYearProvider, useOpenAddYear } from "@/lib/add-year-context";
-import { api } from "@/lib/api";
+import { useAuth } from "@/contexts/auth-context";
+import { isSupabaseConfigured } from "@/lib/supabase/client";
+import Link from "next/link";
 import { cn } from "@/lib/cn";
 import type { Crumb } from "@/components/planner/top-bar";
 
 function PlannerShellInner({
+  api,
   crumbs,
   children,
 }: {
+  api: NonNullable<ReturnType<typeof useAuth>["api"]>;
   crumbs: Crumb[];
   children: React.ReactNode;
 }) {
@@ -38,12 +42,12 @@ function PlannerShellInner({
   }, [sidebarOpen]);
 
   const yearsQuery = useQuery({
-    queryKey: ["years"],
-    queryFn: api.getYears,
+    queryKey: ["years", api.userId],
+    queryFn: () => api.getYears(),
   });
 
   const monthsQueries = useQuery({
-    queryKey: ["all-months", yearsQuery.data?.map((y) => y.id)],
+    queryKey: ["all-months", api.userId, yearsQuery.data?.map((y) => y.id)],
     enabled: !!yearsQuery.data?.length,
     queryFn: async () => {
       const years = yearsQuery.data ?? [];
@@ -96,16 +100,86 @@ export function PlannerShell({
   crumbs: Crumb[];
   children: React.ReactNode;
 }) {
+  const { api, loading, session, syncError } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="flex h-[100dvh] items-center justify-center bg-[var(--color-bg)] text-[var(--color-muted)]">
+        Loading…
+      </div>
+    );
+  }
+
+  if (!api) {
+    if (!isSupabaseConfigured()) {
+      return (
+        <div className="flex h-[100dvh] flex-col items-center justify-center gap-3 bg-[var(--color-bg)] p-6 text-center">
+          <p className="text-[var(--color-text-strong)]">Supabase not configured</p>
+          <p className="max-w-md text-sm text-[var(--color-muted)]">
+            Add <code className="text-xs">NEXT_PUBLIC_SUPABASE_URL</code> and{" "}
+            <code className="text-xs">NEXT_PUBLIC_SUPABASE_ANON_KEY</code> to{" "}
+            <code className="text-xs">frontend/.env.local</code>, then restart{" "}
+            <code className="text-xs">npm run dev</code>.
+          </p>
+        </div>
+      );
+    }
+
+    if (session && syncError) {
+      return (
+        <div className="flex h-[100dvh] flex-col items-center justify-center gap-3 bg-[var(--color-bg)] p-6 text-center">
+          <p className="text-[var(--color-text-strong)]">Signed in, but API sync failed</p>
+          <p className="max-w-md text-sm text-[var(--color-danger)]">{syncError}</p>
+          <p className="max-w-md text-xs text-[var(--color-muted)]">
+            Start the backend: <code className="text-xs">npm run dev:backend</code>
+            . Run migrations:{" "}
+            <code className="text-xs">npm run prisma:migrate</code>.
+          </p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="flex h-[100dvh] flex-col items-center justify-center gap-3 bg-[var(--color-bg)] p-6 text-center">
+        <p className="text-[var(--color-text-strong)]">Sign in required</p>
+        <Link
+          href="/login"
+          className="rounded-lg bg-[var(--color-accent)] px-4 py-2 text-sm font-semibold text-[#042f2e]"
+        >
+          Go to login
+        </Link>
+      </div>
+    );
+  }
+
+  return (
+    <PlannerShellWithApi api={api} crumbs={crumbs}>
+      {children}
+    </PlannerShellWithApi>
+  );
+}
+
+function PlannerShellWithApi({
+  api,
+  crumbs,
+  children,
+}: {
+  api: NonNullable<ReturnType<typeof useAuth>["api"]>;
+  crumbs: Crumb[];
+  children: React.ReactNode;
+}) {
   const yearsQuery = useQuery({
-    queryKey: ["years"],
-    queryFn: api.getYears,
+    queryKey: ["years", api.userId],
+    queryFn: () => api.getYears(),
   });
 
   const existingYears = (yearsQuery.data ?? []).map((y) => y.yearNumber);
 
   return (
     <AddYearProvider existingYears={existingYears}>
-      <PlannerShellInner crumbs={crumbs}>{children}</PlannerShellInner>
+      <PlannerShellInner api={api} crumbs={crumbs}>
+        {children}
+      </PlannerShellInner>
     </AddYearProvider>
   );
 }

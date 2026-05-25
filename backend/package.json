@@ -4,6 +4,9 @@
   "private": true,
   "description": "Personal learning tracker API — years, skills, months, assignments.",
   "license": "UNLICENSED",
+  "engines": {
+    "node": ">=22.0.0 <23.0.0"
+  },
   "type": "module",
   "main": "dist/index.js",
   "scripts": {
@@ -20,17 +23,20 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.49.1",
     "@prisma/client": "^6.2.1",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^5.0.1",
     "prisma": "^6.2.1",
+    "ws": "^8.18.0",
     "zod": "^3.24.1"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
     "@types/node": "^22.10.5",
+    "@types/ws": "^8.5.14",
     "tsx": "^4.19.2",
     "typescript": "^5.7.3"
   },

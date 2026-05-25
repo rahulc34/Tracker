@@ -1,5 +1,5 @@
 # Build from Tracker root: docker build -f backend/Dockerfile .
-FROM node:20-alpine AS deps
+FROM node:22-alpine AS deps
 WORKDIR /app
 COPY package.json package-lock.json ./
 COPY backend/package.json backend/package.json
@@ -11,7 +11,7 @@ COPY backend/tsconfig.json backend/tsconfig.json
 COPY backend/src backend/src
 RUN npm run build --workspace @tracker/backend
 
-FROM node:20-alpine AS runner
+FROM node:22-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 

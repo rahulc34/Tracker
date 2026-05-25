@@ -1,24 +1,9 @@
 import { Router, type Request, type Response } from "express";
 import { prisma } from "../db.js";
-import { badRequest, notFound, param, serverError } from "../lib/http.js";
-import { createUserBody } from "../lib/validators.js";
+import { notFound, param, serverError } from "../lib/http.js";
 import { getRootOverview } from "../lib/progress.js";
 
 export const usersRouter = Router();
-
-usersRouter.post("/", async (req: Request, res: Response) => {
-  const parsed = createUserBody.safeParse(req.body);
-  if (!parsed.success) {
-    badRequest(res, "Invalid body");
-    return;
-  }
-  try {
-    const user = await prisma.trackerUser.create({ data: parsed.data });
-    res.status(201).json(user);
-  } catch (err) {
-    serverError(res, err);
-  }
-});
 
 usersRouter.get("/:userId", async (req: Request, res: Response) => {
   try {

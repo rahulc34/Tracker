@@ -1,3 +1,11 @@
+export type TrackerUser = {
+  id: string;
+  supabaseAuthId?: string | null;
+  email?: string | null;
+  name: string;
+  createdAt: string;
+};
+
 export type YearSummary = {
   id: string;
   yearNumber: number;

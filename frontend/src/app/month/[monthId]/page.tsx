@@ -5,7 +5,8 @@ import { use } from "react";
 import { MonthView } from "@/components/planner/month-view";
 import { PlannerShell } from "@/components/planner/planner-shell";
 import { MONTH_NAMES } from "@/lib/constants";
-import { api } from "@/lib/api";
+import { useApi } from "@/contexts/auth-context";
+import { AuthGate } from "@/components/auth/auth-gate";
 
 export default function MonthPage({
   params,
@@ -13,9 +14,10 @@ export default function MonthPage({
   params: Promise<{ monthId: string }>;
 }) {
   const { monthId } = use(params);
+  const api = useApi();
 
   const overview = useQuery({
-    queryKey: ["month-overview", monthId],
+    queryKey: ["month-overview", monthId, api.userId],
     queryFn: () => api.getMonthOverview(monthId),
   });
 
@@ -57,7 +59,9 @@ export default function MonthPage({
         { label: monthName ?? "Month" },
       ]}
     >
-      <MonthView monthId={monthId} data={overview.data} />
+      <AuthGate>
+        <MonthView monthId={monthId} data={overview.data} />
+      </AuthGate>
     </PlannerShell>
   );
 }

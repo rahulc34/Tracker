@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ChevronRight, Menu, Search, X } from "lucide-react";
 import { useState } from "react";
 import { PlannerSearch } from "@/components/planner/planner-search";
+import { useAuth } from "@/contexts/auth-context";
 import { cn } from "@/lib/cn";
 
 export type Crumb = { label: string; href?: string };
@@ -15,6 +16,7 @@ export function TopBar({
   crumbs: Crumb[];
   onMenuClick?: () => void;
 }) {
+  const { trackerUser, signOut } = useAuth();
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const mobileCrumbs =
     crumbs.length > 2 ? [crumbs[0]!, crumbs[crumbs.length - 1]!] : crumbs;
@@ -104,6 +106,24 @@ export function TopBar({
         </button>
 
         <PlannerSearch className="hidden md:flex" />
+
+        {trackerUser && (
+          <div className="hidden shrink-0 items-center gap-2 md:flex">
+            <span
+              className="max-w-[140px] truncate text-xs text-[var(--color-muted)]"
+              title={trackerUser.email ?? trackerUser.name}
+            >
+              {trackerUser.name}
+            </span>
+            <button
+              type="button"
+              onClick={() => void signOut()}
+              className="rounded-lg border border-[var(--color-border)] px-2.5 py-1.5 text-xs text-[var(--color-muted)] hover:text-[var(--color-text)]"
+            >
+              Sign out
+            </button>
+          </div>
+        )}
       </div>
 
       {mobileSearchOpen && (

@@ -1,10 +1,14 @@
 # Pulse Tracker — production stack
-# Usage (from this directory):
-#   cp .env.production.example .env
-#   docker compose --env-file .env up -d --build
+#
+# Supabase (default): set DATABASE_URL + DIRECT_URL in .env, then:
+#   docker compose --env-file .env up -d --build api web
+#
+# Local Postgres: add profile local-db:
+#   docker compose --env-file .env --profile local-db up -d --build
 
 services:
   db:
+    profiles: ["local-db"]
     image: postgres:16-alpine
     restart: unless-stopped
     environment:
@@ -27,13 +31,17 @@ services:
     environment:
       NODE_ENV: production
       PORT: 4001
-      DATABASE_URL: postgresql://${POSTGRES_USER:-tracker}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-tracker}
+      DATABASE_URL: ${DATABASE_URL:?Set DATABASE_URL (Supabase pooler or postgres://...)}
+      DIRECT_URL: ${DIRECT_URL:-${DATABASE_URL}}
+      SUPABASE_URL: ${SUPABASE_URL:?Set SUPABASE_URL}
+      SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY:?Set SUPABASE_SERVICE_ROLE_KEY}
       CORS_ORIGINS: ${CORS_ORIGINS:?Set CORS_ORIGINS to your public web URL(s)}
     ports:
       - "${API_PORT:-4001}:4001"
     depends_on:
       db:
         condition: service_healthy
+        required: false
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://127.0.0.1:4001/health"]
       interval: 15s

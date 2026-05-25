@@ -9,7 +9,7 @@ import {
 } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { AddYearModal } from "@/components/planner/add-year-modal";
-import { api } from "@/lib/api";
+import { useApi } from "@/contexts/auth-context";
 
 type AddYearContextValue = {
   openAddYear: () => void;
@@ -24,6 +24,7 @@ export function AddYearProvider({
   children: ReactNode;
   existingYears?: number[];
 }) {
+  const api = useApi();
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
 

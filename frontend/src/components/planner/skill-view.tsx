@@ -17,7 +17,7 @@ import { useEffect, useMemo, useState } from "react";
 import { AssignmentTracker } from "@/components/planner/assignment-tracker";
 import { Badge, Card } from "@/components/ui/card";
 import { ProgressBar, ProgressRing } from "@/components/ui/progress";
-import { api } from "@/lib/api";
+import { useApi } from "@/contexts/auth-context";
 import { deriveFromSubSkills } from "@/lib/skill-progress";
 import type { SkillDetail, SkillResource, SubSkill } from "@/lib/types";
 import { cn } from "@/lib/cn";
@@ -26,6 +26,7 @@ const inputClass =
   "w-full rounded-lg border border-[var(--color-border)] bg-[var(--color-bg)] px-3 py-2 text-sm text-[var(--color-text)] outline-none focus:border-[var(--color-accent)]";
 
 export function SkillView({ skill }: { skill: SkillDetail }) {
+  const api = useApi();
   const queryClient = useQueryClient();
   const router = useRouter();
   const [subSkills, setSubSkills] = useState(skill.subSkills);

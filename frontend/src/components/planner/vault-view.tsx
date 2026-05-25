@@ -17,7 +17,7 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import { Card, SectionHeader } from "@/components/ui/card";
 import { PageSearchBar } from "@/components/ui/page-search-bar";
-import { api } from "@/lib/api";
+import { useApi } from "@/contexts/auth-context";
 import {
   VAULT_PLATFORMS,
   vaultPlatformColor,
@@ -37,6 +37,7 @@ type AddModalState =
   | null;
 
 export function VaultView() {
+  const api = useApi();
   const qc = useQueryClient();
   const [addModal, setAddModal] = useState<AddModalState>(null);
   const [search, setSearch] = useState("");
@@ -371,6 +372,7 @@ function AddVaultModal({
   onClose: () => void;
   onSaved: () => void;
 }) {
+  const api = useApi();
   const [platform, setPlatform] = useState<VaultPlatformKey>("google_drive");
   const [title, setTitle] = useState("");
   const [url, setUrl] = useState("");

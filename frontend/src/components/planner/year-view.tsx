@@ -14,7 +14,7 @@ import { SkillPlanRow } from "@/components/planner/skill-plan-row";
 import { MONTH_SHORT } from "@/lib/constants";
 import { isCurrentMonth, isCurrentYear } from "@/lib/calendar";
 import { cn } from "@/lib/cn";
-import { api } from "@/lib/api";
+import { useApi } from "@/contexts/auth-context";
 import type { YearOverview } from "@/lib/types";
 
 export function YearView({
@@ -24,6 +24,7 @@ export function YearView({
   yearId: string;
   data: YearOverview;
 }) {
+  const api = useApi();
   const queryClient = useQueryClient();
   const [modalScope, setModalScope] = useState<"yearly" | "monthly" | null>(
     null,
