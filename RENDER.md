@@ -1,6 +1,8 @@
 # Deploy to Render (GitHub → auto-deploy)
 
-This repo includes a **[`render.yaml`](./render.yaml)** Blueprint: two Web Services from one monorepo (API + Next.js), Node **22**, Supabase for DB + Auth.
+This repo includes a **[`render.yaml`](./render.yaml)** Blueprint: **one** Web Service (`tracker`) that runs Next.js on the public port and Express on an internal port (`4001`). The browser calls `/api/...` on the same hostname; Next proxies those requests to the API.
+
+Node **22**, Supabase for DB + Auth.
 
 ---
 
@@ -14,15 +16,13 @@ git commit -m "Add Render blueprint"
 git push origin main
 ```
 
-Use your default branch name in `render.yaml` (`branch: main`) or change it to `master` if needed.
+Use your default branch name in `render.yaml` (`branch: main`) or change it if needed.
 
 ### 2. Create the Blueprint on Render
 
 1. [dashboard.render.com](https://dashboard.render.com) → **New +** → **Blueprint**
 2. Connect your **GitHub** account and select the **Tracker** repository
-3. Render reads `render.yaml` and creates:
-   - **tracker-api** — Express + Prisma
-   - **tracker-web** — Next.js
+3. Render reads `render.yaml` and creates **tracker** (single Web Service)
 4. When prompted, set **secret** environment variables (from `tracker-secrets` group):
 
 | Variable | Where to get it |
@@ -34,63 +34,48 @@ Use your default branch name in `render.yaml` (`branch: main`) or change it to `
 | `NEXT_PUBLIC_SUPABASE_URL` | Same Project URL |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Project Settings → API → **anon** key |
 
-5. Click **Apply** and wait for both services to deploy.
+5. Click **Apply** and wait for the service to deploy.
+
+**Migrating from two services (`tracker-api` + `tracker-web`):** delete the old services in the Render dashboard (or create a fresh Blueprint in a new Render project), then apply the new blueprint so only **tracker** remains.
 
 ### 3. Supabase Auth redirect URLs
 
-In Supabase → **Authentication → URL configuration**, add:
+In Supabase → **Authentication → URL configuration**, use your **tracker** service URL (Render → **tracker** → **Settings** → URL), for example:
 
-- **Site URL:** `https://tracker-web-7awf.onrender.com` (your Render web URL)
-- **Redirect URLs:** `https://tracker-web-7awf.onrender.com/auth/callback`
-
-(If you renamed services in `render.yaml`, use `https://YOUR-WEB-SERVICE-NAME.onrender.com` instead.)
+- **Site URL:** `https://tracker-xxxx.onrender.com`
+- **Redirect URLs:** `https://tracker-xxxx.onrender.com/auth/callback`
 
 ### 4. Verify
 
 | URL | Expected |
 |-----|----------|
-| `https://tracker-api-mb13.onrender.com/health` | `{"ok":true,...}` |
-| `https://tracker-web-7awf.onrender.com` | Login page → sign in → app |
+| `https://YOUR-SERVICE.onrender.com/health` | `{"ok":true,...}` |
+| `https://YOUR-SERVICE.onrender.com` | Login page → sign in → app |
 
 ---
 
 ## Auto-deploy on push
 
-After the Blueprint exists, every push to **`main`** (or your configured branch) triggers:
+After the Blueprint exists, every push to **`main`** redeploys **tracker**.
 
-- **tracker-api** — if `backend/`, root `package.json`, or lockfile changed
-- **tracker-web** — if `frontend/`, root `package.json`, or lockfile changed
+Build/start flow:
 
-(`buildFilter` in `render.yaml` limits unnecessary rebuilds.)
+- [`scripts/render-build.sh`](./scripts/render-build.sh) — install, Prisma generate, build API + Next (with API proxy rewrites)
+- [`scripts/render-start.sh`](./scripts/render-start.sh) — migrate DB, start API on `4001`, start Next on Render `PORT`
 
 ---
 
-## Service URLs (default names)
+## Split deploy (Docker / two URLs)
 
-| Service | URL |
-|---------|-----|
-| API | `https://tracker-api-mb13.onrender.com` (your hostname may differ) |
-| Web | `https://tracker-web-7awf.onrender.com` |
-
-These are wired in `render.yaml` for `CORS_ORIGINS` and `NEXT_PUBLIC_TRACKER_API_URL`. If you **rename** services on Render, update those two values in `render.yaml` **and** in the Render Dashboard, then **redeploy tracker-web** (Next.js bakes `NEXT_PUBLIC_*` at build time).
-
-### "Signed in, but API sync failed" / Failed to fetch
-
-Usually the web app was built with the wrong API hostname. Check:
-
-1. Open `https://YOUR-API.onrender.com/health` — must return `{"ok":true,...}` (not 404).
-2. Render → **tracker-web** → **Environment** → `NEXT_PUBLIC_TRACKER_API_URL` = exact API URL (e.g. `https://tracker-api-mb13.onrender.com`).
-3. **Manual Deploy** on tracker-web with **Clear build cache** (required after changing `NEXT_PUBLIC_*`).
-4. Render → **tracker-api** → `CORS_ORIGINS` must include your web URL **exactly** (e.g. `https://tracker-web-7awf.onrender.com`, not `tracker-web.onrender.com`).
+For VPS or Docker Compose with separate ports, do **not** set `TRACKER_PROXY_API`. Set `NEXT_PUBLIC_TRACKER_API_URL` and `CORS_ORIGINS` instead. See **[DEPLOY.md](./DEPLOY.md)**.
 
 ---
 
 ## Custom domain (optional)
 
-1. Render → **tracker-web** → **Settings** → **Custom Domains**
-2. Update `CORS_ORIGINS` on **tracker-api** to your domain
-3. Update `NEXT_PUBLIC_TRACKER_API_URL` if the API also has a custom domain
-4. **Redeploy tracker-web** (build-time env change)
+1. Render → **tracker** → **Settings** → **Custom Domains**
+2. Update Supabase **Site URL** and **Redirect URLs** to your domain
+3. Redeploy (no separate API URL to configure)
 
 ---
 
@@ -108,9 +93,9 @@ Usually the web app was built with the wrong API hostname. Check:
 |-------|-----|
 | API crashes: `Cannot find module .../dist/generated/prisma/client.js` | Ensure latest `backend/package.json` build copies Prisma to `dist/`; redeploy |
 | API build fails on Prisma | Check `DATABASE_URL` / `DIRECT_URL`; use pooler hosts from Supabase |
-| Web build missing env | Set all `NEXT_PUBLIC_*` vars before deploy; redeploy after changes |
-| Login works locally, not on Render | Add production redirect URL in Supabase |
-| CORS errors (Network tab) | `CORS_ORIGINS` on **tracker-api** must exactly match your web URL, e.g. `https://tracker-web-7awf.onrender.com` |
+| Web build missing env | Set all `NEXT_PUBLIC_*` Supabase vars before deploy |
+| Login works locally, not on Render | Add production redirect URL in Supabase (same hostname as **tracker**) |
+| “Signed in, but API sync failed” | Open `/health` on the same hostname; check deploy logs for API start on port `4001` |
 | Free tier sleeps | First request after idle may be slow (~30s) |
 
 ---

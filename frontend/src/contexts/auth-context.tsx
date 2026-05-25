@@ -44,7 +44,7 @@ async function syncTrackerUser(
     });
   } catch {
     throw new Error(
-      `Failed to reach ${sessionUrl}. On Render, set NEXT_PUBLIC_TRACKER_API_URL to your API URL (e.g. https://tracker-api-mb13.onrender.com) on tracker-web, then redeploy.`,
+      `Failed to reach ${sessionUrl}. Check that /health works on this site and that the API process started (Render logs).`,
     );
   }
   if (!res.ok) {

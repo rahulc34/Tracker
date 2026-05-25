@@ -129,14 +129,11 @@ pm2 start npm --name pulse-web -- start
 1. Push repo to GitHub (`main` branch).
 2. Render Dashboard → **New** → **Blueprint** → connect repo.
 3. Set secret env vars when prompted (Supabase URLs + keys).
-4. Every push to `main` redeploys **tracker-api** and **tracker-web**.
+4. Every push to `main` redeploys the single **tracker** Web Service.
 
-Default URLs:
+Default URL: `https://tracker.onrender.com` (your hostname may differ).
 
-- API: `https://tracker-api.onrender.com`
-- Web: `https://tracker-web.onrender.com`
-
-Configured in [`render.yaml`](./render.yaml) (Node 22, monorepo workspaces).
+Configured in [`render.yaml`](./render.yaml) (Node 22, monorepo workspaces, API proxied via Next).
 
 ---
 

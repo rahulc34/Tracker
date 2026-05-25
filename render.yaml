@@ -1,7 +1,8 @@
-# Render Blueprint — push to GitHub → auto-deploy both services.
-# Docs: https://render.com/docs/blueprint-spec
+# Render Blueprint — one Web Service (Next.js + Express API in one repo).
+# https://render.com/docs/blueprint-spec
 #
-# First deploy: Dashboard → New → Blueprint → connect repo → set secret env vars when prompted.
+# Deploy: Dashboard → New → Blueprint → connect this repo.
+# Set secret env vars when prompted (see RENDER.md).
 
 envVarGroups:
   - name: tracker-secrets
@@ -21,19 +22,13 @@ envVarGroups:
 
 services:
   - type: web
-    name: tracker-api
+    name: tracker
     runtime: node
     plan: free
     branch: main
-    buildCommand: npm ci --include=dev && npm run prisma:generate && npm run build:backend
-    startCommand: cd backend && npx prisma migrate deploy && node dist/index.js
+    buildCommand: bash scripts/render-build.sh
+    startCommand: bash scripts/render-start.sh
     healthCheckPath: /health
-    buildFilter:
-      paths:
-        - backend/**
-        - package.json
-        - package-lock.json
-        - .node-version
     envVars:
       - fromGroup: tracker-secrets
       - key: NODE_VERSION
@@ -42,31 +37,9 @@ services:
         value: production
       - key: AUTH_DISABLED
         value: "false"
-      # Exact frontend origin(s), comma-separated. Must match Render → web service URL.
-      - key: CORS_ORIGINS
-        value: https://tracker-web-7awf.onrender.com
-
-  - type: web
-    name: tracker-web
-    runtime: node
-    plan: free
-    branch: main
-    # Install devDependencies too (types/eslint); NODE_ENV=production skips them otherwise.
-    buildCommand: npm ci --include=dev && npm run build:frontend
-    startCommand: cd frontend && npm run start
-    healthCheckPath: /
-    buildFilter:
-      paths:
-        - frontend/**
-        - package.json
-        - package-lock.json
-        - .node-version
-    envVars:
-      - fromGroup: tracker-secrets
-      - key: NODE_VERSION
-        value: 22.14.0
-      - key: NODE_ENV
-        value: production
-      # Must match your API service hostname (Render → service → URL).
-      - key: NEXT_PUBLIC_TRACKER_API_URL
-        value: https://tracker-api-mb13.onrender.com
+      - key: TRACKER_PROXY_API
+        value: "true"
+      - key: TRACKER_API_PORT
+        value: "4001"
+      - key: NEXT_PUBLIC_TRACKER_PROXY_API
+        value: "true"

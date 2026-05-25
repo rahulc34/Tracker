@@ -7,9 +7,19 @@ function isPrivateLanHost(hostname: string): boolean {
 }
 
 export function getApiBase(): string {
-  // Production / Render: always use the public API URL baked at build time.
-  if (process.env.NEXT_PUBLIC_TRACKER_API_URL) {
-    return process.env.NEXT_PUBLIC_TRACKER_API_URL;
+  const configured = process.env.NEXT_PUBLIC_TRACKER_API_URL?.trim();
+  if (configured) {
+    return configured;
+  }
+
+  // Render monolith: browser uses same origin; Next rewrites /api → Express.
+  if (process.env.NEXT_PUBLIC_TRACKER_PROXY_API === "true") {
+    if (typeof window !== "undefined") {
+      return window.location.origin;
+    }
+    if (process.env.TRACKER_API_INTERNAL_URL) {
+      return process.env.TRACKER_API_INTERNAL_URL.replace(/\/$/, "");
+    }
   }
 
   // Phone on same Wi‑Fi: hit API on this machine's LAN IP (dev only).

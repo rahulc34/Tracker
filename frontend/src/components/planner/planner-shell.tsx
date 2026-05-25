@@ -147,10 +147,8 @@ export function PlannerShell({
             </p>
           ) : (
             <p className="max-w-md text-xs text-[var(--color-muted)]">
-              On Render → <strong>tracker-web</strong> → Environment, set{" "}
-              <code className="text-xs">NEXT_PUBLIC_TRACKER_API_URL</code> to your live API
-              (e.g. <code className="text-xs">https://tracker-api-mb13.onrender.com</code>
-              ), then <strong>Manual Deploy → Clear build cache & deploy</strong>.
+              On Render, open <code className="text-xs">/health</code> on this same URL and check
+              deploy logs if the API failed to start.
             </p>
           )}
         </div>
